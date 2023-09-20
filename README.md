@@ -1,4 +1,4 @@
-# Docker Build - Tag - Publish
+# ECR Build - Tag - Publish
 
 This GitHub Action will build, tag, and publish your ecr image.  The logic has been designed for our use case, but can be modifed for yours.
 
@@ -37,10 +37,10 @@ The following can be used as `step.with` keys.  T/F types expect true or false. 
 | `image_tag` | string | No | Use this tag instead of the tagging logic.  | See tagging logic |
 | `use_latest` | T/F | No | The default branch gets a latest tag | `true` |
 | `use_sha` | T/F | No | Set to `true` to use the SHA for the tag. | `false` |
-| `org_name` | string | No | Docker org name.   | GitHub Org Name |
-| `repo_name` | string | No | The name of the Docker Repository.  | GitHub repo name. |
+| `org_name` | string | No | Your org name.   | GitHub Org Name |
+| `repo_name` | string | No | The name of the repository.  | GitHub repo name. |
 | `build_args` | string | No | Add arbitrary build arguments | N/A |
-| `working-directory` | string | No | Specifies the working directory for the Docker Build step | N/A |
+| `working_directory` | string | No | Specifies the working directory for the Docker Build step | N/A |
 
 
 ## Example 1
@@ -77,7 +77,7 @@ Here we check the code out since we make a change before the build / publish ste
         org_name: bitovi
         repo_name: deploy-eks-helm
         build_args: --build-arg git_personal_token=PAT_token
-        working-directory: ./app/inner-folder
+        working_directory: ./app/inner-folder
     - run: |
         echo "Image Created:  ${{ env.image }}"
         echo "Tag Created: ${{ env.tag }}"

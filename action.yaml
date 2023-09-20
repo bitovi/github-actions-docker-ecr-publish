@@ -59,7 +59,7 @@ inputs:
   build_args:
     description: Add a string of values to the end of the build command
     required: false
-  working-directory:
+  working_directory:
     description: Specify the working directory that the docker build will be run in
     required: false
 
@@ -117,8 +117,8 @@ runs:
 
         IMAGE_NAME="$ORG_NAME/$REPO_NAME"
 
-        if [ -n "${{ inputs.working-directory }}" ]; then
-          cd ${{ inputs.working-directory }}
+        if [ -n "${{ inputs.working_directory }}" ]; then
+          cd ${{ inputs.working_directory }}
         fi
 
         echo "::group::AWS ECR Login"
