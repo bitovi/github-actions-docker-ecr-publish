@@ -48,10 +48,6 @@ inputs:
     description: Docker org name.  
     required: false
     default: ''
-  repo_name:
-    description: Name of the docker repository
-    required: false
-    default: ''
   use_latest:
     description: Tag default branch with latest tag instead of branch name.
     required: false
@@ -109,13 +105,13 @@ runs:
           ORG_NAME="${{ inputs.org_name }}"
         fi
 
-         if [ -z "${{ inputs.repo_name }}" ] ; then
-          REPO_NAME=$(echo $GITHUB_REPOSITORY | sed 's/^.*\///')
+         if [ -z "${{ inputs.aws_ecr_repo_name }}" ] ; then
+          AWS_ECR_REPO_NAME=$(echo $GITHUB_REPOSITORY | sed 's/^.*\///')
         else
-          REPO_NAME="${{ inputs.repo_name }}"
+          AWS_ECR_REPO_NAME="${{ inputs.aws_ecr_repo_name }}"
         fi
 
-        IMAGE_NAME="$ORG_NAME/$REPO_NAME"
+        IMAGE_NAME="$ORG_NAME/$AWS_ECR_REPO_NAME"
 
         if [ -n "${{ inputs.working_directory }}" ]; then
           cd ${{ inputs.working_directory }}

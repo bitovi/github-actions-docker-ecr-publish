@@ -38,7 +38,6 @@ The following can be used as `step.with` keys.  T/F types expect true or false. 
 | `use_latest` | T/F | No | The default branch gets a latest tag | `true` |
 | `use_sha` | T/F | No | Set to `true` to use the SHA for the tag. | `false` |
 | `org_name` | string | No | Your org name.   | GitHub Org Name |
-| `repo_name` | string | No | The name of the repository.  | GitHub repo name. |
 | `build_args` | string | No | Add arbitrary build arguments | N/A |
 | `working_directory` | string | No | Specifies the working directory for the Docker Build step | N/A |
 
@@ -75,7 +74,7 @@ Here we check the code out since we make a change before the build / publish ste
         image_tag: it
         use_sha: 'true' # won't do anything since image_tag is set
         org_name: bitovi
-        repo_name: deploy-eks-helm
+        aws_ecr_repo_name: deploy-eks-helm
         build_args: --build-arg git_personal_token=PAT_token
         working_directory: ./app/inner-folder
     - run: |
