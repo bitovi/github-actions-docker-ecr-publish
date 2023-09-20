@@ -43,7 +43,7 @@ inputs:
   use_sha:
     description: Use the SHA for the tag.  Overrides the default logic.
     required: false
-    default: 'false'
+    default: false
   org_name:
     description: Docker org name.  
     required: false
@@ -55,7 +55,7 @@ inputs:
   use_latest:
     description: Tag default branch with latest tag instead of branch name.
     required: false
-    default: 'true'
+    default: true
   build_args:
     description: Add a string of values to the end of the build command
     required: false
