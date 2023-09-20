@@ -1,5 +1,5 @@
 # action.yml
-name: 'Docker Build Tag Publish'
+name: 'Docker Build Tag Publish to ECR'
 author: Bitovi
 description: 'Build, Tag, and Publish a docker image'
 branding: 
