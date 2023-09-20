@@ -123,17 +123,17 @@ runs:
 
         echo "::group::AWS ECR Login"
         echo "Logging into AWS ECR"
-        aws ecr get-login-password --region ${{ inputs.aws_default_region }} | docker login --username AWS --password-stdin ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com
+        aws ecr get-login-password --region ${{ inputs.aws_default_region }} | docker login --username AWS --password-stdin ${{ steps.aws-login.outputs.aws-account-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com
         echo "::endgroup::"
         
         echo "::group::Build Image"
         echo "Building $IMAGE_NAME"
-        docker build --pull -t $IMAGE_NAME:$IMAGE_TAG -t ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG . ${{ inputs.build_args }}
+        docker build --pull -t $IMAGE_NAME:$IMAGE_TAG -t ${{ steps.aws-login.outputs.aws-account-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG . ${{ inputs.build_args }}
         echo "::endgroup::"
 
         echo "::group::Push Image"
         echo "Pushing docker image $IMAGE_NAME:$IMAGE_TAG"
-        docker push ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG
+        docker push ${{ steps.aws-login.outputs.aws-account-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG
         echo "::endgroup::"
 
         echo "tag=$IMAGE_TAG"  >> $GITHUB_ENV
