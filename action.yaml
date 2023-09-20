@@ -1,0 +1,141 @@
+# action.yml
+name: 'Docker Build Tag Publish'
+author: Bitovi
+description: 'Build, Tag, and Publish a docker image'
+branding: 
+  icon: tag
+  color: red
+inputs:
+  checkout:
+    description: Checkout the repository
+    required: false
+    default: 'true'
+    
+  # AWS
+  aws_login:
+    description: 'Use action builtin login'
+    default: true
+    required: false
+  aws_access_key_id:
+    description: 'AWS access key ID'
+    required: true
+  aws_secret_access_key:
+    description: 'AWS secret access key'
+    required: true
+  aws_session_token:
+    description: 'AWS session token'
+    required: false
+  aws_default_region:
+    description: 'AWS default region'
+    default: us-east-1
+    required: false
+
+  # ECR Details
+  aws_ecr_repo_name:
+    description: 'AWS ECR repository name. e.g. hello-repository'
+    required: true
+  
+  # Container image
+  image_tag:
+    description: Tag to override default Logic
+    required: false
+    default: ''
+  use_sha:
+    description: Use the SHA for the tag.  Overrides the default logic.
+    required: false
+    default: 'false'
+  org_name:
+    description: Docker org name.  
+    required: false
+    default: ''
+  repo_name:
+    description: Name of the docker repository
+    required: false
+    default: ''
+  use_latest:
+    description: Tag default branch with latest tag instead of branch name.
+    required: false
+    default: 'true'
+  build_args:
+    description: Add a string of values to the end of the build command
+    required: false
+  working-directory:
+    description: Specify the working directory that the docker build will be run in
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout if required
+      if: ${{ inputs.checkout == 'true' }}
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      id: aws-login
+      if: ${{ inputs.aws_login == 'true' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ inputs.aws_default_region }}
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-session-token: ${{ inputs.aws_session_token }}
+
+    - name: Build, tag and push Docker image
+      id: build-tag-push
+      shell: bash
+      run: |
+        DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+        IMAGE_TAG=${{ inputs.image_tag }}
+        
+        BRANCH_OR_TAG_NAME=${GITHUB_REF##*/}
+        echo "BRANCH_OR_TAG_NAME: $BRANCH_OR_TAG_NAME"
+
+        if [ -z "$IMAGE_TAG" ]; then
+          if [[ ${{ inputs.use_sha }} == 'true' ]]; then
+            IMAGE_TAG="$GITHUB_SHA"
+          elif [ "$BRANCH_OR_TAG_NAME" == "$DEFAULT_BRANCH" ] && [ ${{ inputs.use_latest }} == 'true'  ] ; then
+            IMAGE_TAG="latest"
+          elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            IMAGE_TAG="pr-${GITHUB_HEAD_REF}"
+          else
+            IMAGE_TAG="$BRANCH_OR_TAG_NAME"
+          fi
+        fi
+        echo "Image_Tag: $IMAGE_TAG"
+
+        if [ -z "${{ inputs.org_name }}" ] ; then
+          ORG_NAME=$(echo $GITHUB_REPOSITORY | sed 's/\/.*//')
+        else
+          ORG_NAME="${{ inputs.org_name }}"
+        fi
+
+         if [ -z "${{ inputs.repo_name }}" ] ; then
+          REPO_NAME=$(echo $GITHUB_REPOSITORY | sed 's/^.*\///')
+        else
+          REPO_NAME="${{ inputs.repo_name }}"
+        fi
+
+        IMAGE_NAME="$ORG_NAME/$REPO_NAME"
+
+        if [ -n "${{ inputs.working-directory }}" ]; then
+          cd ${{ inputs.working-directory }}
+        fi
+
+        echo "::group::AWS ECR Login"
+        echo "Logging into AWS ECR"
+        aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com
+        echo "::endgroup::"
+        
+        echo "::group::Build Image"
+        echo "Building $IMAGE_NAME"
+        docker build --pull -t $IMAGE_NAME:$IMAGE_TAG -t ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG . ${{ inputs.build_args }}
+        echo "::endgroup::"
+
+        echo "::group::Push Image"
+        echo "Pushing docker image $IMAGE_NAME:$IMAGE_TAG"
+        docker push ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com/${{ inputs.aws_ecr_repo_name }}:$IMAGE_TAG
+        echo "::endgroup::"
+
+        echo "tag=$IMAGE_TAG"  >> $GITHUB_ENV
+        echo "image=$IMAGE_NAME" >> $GITHUB_ENV
+        echo 'Complete!'
