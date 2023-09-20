@@ -123,7 +123,7 @@ runs:
 
         echo "::group::AWS ECR Login"
         echo "Logging into AWS ECR"
-        aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com
+        aws ecr get-login-password --region ${{ inputs.aws_default_region }} | docker login --username AWS --password-stdin ${{ steps.aws-login.outputs.aws-accout-id }}.dkr.ecr.${{ inputs.aws_default_region }}.amazonaws.com
         echo "::endgroup::"
         
         echo "::group::Build Image"
